@@ -1,17 +1,18 @@
 import numpy as np
 import random as rm
+import time
 
 # The statespace
 states = ["start","hault","accident"]
 
 # Possible sequences of events
-transitionName = [["SS","SH","SA"],["HH","HS","HA"],["AA","AS","AH"]]
+transitionName = [["SS","SH","SA"],["HS","HH","HA"],["AS","AH","AA"]]
 
 # Probabilities matrix (transition matrix)
 transitionMatrix = [[0.2,0.6,0.2],[0.1,0.6,0.3],[0.2,0.7,0.1]]
 
 if sum(transitionMatrix[0])+sum(transitionMatrix[1])+sum(transitionMatrix[1]) != 3:
-    print("total probability is not 1")
+    print("Error : total probability is not 1")
 
 
 def activity_forecast(days):
@@ -27,7 +28,7 @@ def activity_forecast(days):
                 prob = prob * 0.2
                 activityList.append("start")
                 pass
-            elif change == "SR":
+            elif change == "SH":
                 prob = prob * 0.6
                 activityToday = "accident"
                 activityList.append("accident")
@@ -41,7 +42,7 @@ def activity_forecast(days):
                 prob = prob * 0.5
                 activityList.append("accident")
                 pass
-            elif change == "RS":
+            elif change == "HS":
                 prob = prob * 0.2
                 activityToday = "start"
                 activityList.append("start")
@@ -51,11 +52,11 @@ def activity_forecast(days):
                 activityList.append("hault")
         elif activityToday == "hault":
             change = np.random.choice(transitionName[2],replace=True,p=transitionMatrix[2])
-            if change == "II":
+            if change == "AA":
                 prob = prob * 0.1
                 activityList.append("hault")
                 pass
-            elif change == "IS":
+            elif change == "AS":
                 prob = prob * 0.2
                 activityToday = "start"
                 activityList.append("start")
@@ -64,18 +65,23 @@ def activity_forecast(days):
                 activityToday = "accident"
                 activityList.append("accident")
         i += 1    
+    # print("Possible states: " + str(activityList))
+    # print("End state after "+ str(days) + " days: " + activityToday)
+    # print("Probability of the possible sequence of states: " + str(prob))
     return activityList
 
 # To save every activityList
 list_activity = []
 count = 0
 
-# `Range` starts from the first count up until but excluding the last count
-for iterations in range(1,10000):
+
+for iterations in range(1,100000):
+        start = time.perf_counter()
         list_activity.append(activity_forecast(2))
+stop = time.perf_counter()
 
 # Check out all the `activityList` we collected    
-#print(list_activity)
+# print(list_activity)
 
 # Iterate through the list to get a count of all activities ending in state:'accident'
 for smaller_list in list_activity:
@@ -83,5 +89,7 @@ for smaller_list in list_activity:
         count += 1
 
 # Calculate the probability of starting from state:'start' and ending at state:'accident'
-percentage = (count/10000) * 100
+percentage = (count/100000) * 100
 print("The probability of starting at state:'start' and ending at state:'accident'= " + str(percentage) + "%")
+
+print("Time elaspsed :",stop - start)
